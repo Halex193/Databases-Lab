@@ -7,11 +7,10 @@
 -power supply types 1:m PC types  
 -ram types 1:m PC types  
 
--keyboard types
-
 -customers 1:m orders  
--employees  m:m employees (PC types)  
--orders m:m products  
--products m:m orders  
+-employees
+-orders m:m pc_type, peripherals
 
--PC tests m:m (PC types | employees)
+-pc_type_order_details
+-peripheral_order_details
+
