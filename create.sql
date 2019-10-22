@@ -94,3 +94,29 @@ ALTER TABLE Employees
 
 ALTER TABLE Hard_drive_types
 ADD capacity INT
+
+ALTER TABLE Orders
+ADD progress NVARCHAR(200) NOT NULL DEFAULT 'not delivered'
+
+ALTER TABLE Orders
+ADD CONSTRAINT Progress_check CHECK (progress = 'not delivered' OR progress = 'delivered' OR progress = 'in progress')
+
+ALTER TABLE CPU_types
+ADD price INT
+
+ALTER TABLE Motherboard_types
+ADD price INT
+
+ALTER TABLE Power_supply_types
+ADD price INT
+
+ALTER TABLE Peripherals
+ADD price INT
+
+ALTER TABLE Ram_types
+ADD price INT
+
+ALTER TABLE Hard_drive_types
+ADD price INT
+
+
