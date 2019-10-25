@@ -14,6 +14,6 @@ INSERT INTO Electronics_Shop.dbo.Orders (customer_id, date, employee_helper_id) 
 INSERT INTO Electronics_Shop.dbo.Orders (customer_id, date, employee_helper_id) VALUES (3, '2018-10-15 08:00:59.000', 1);
 -- INSERT INTO Electronics_Shop.dbo.Orders (customer_id, date, employee_helper_id) VALUES (3, '2018-10-15 08:00:59.000', 7);
 
-INSERT INTO Electronics_Shop.dbo.PC_type_order_details (order_id, pc_type_id, amount) VALUES (4, 4, 1);
-INSERT INTO Electronics_Shop.dbo.PC_type_order_details (order_id, pc_type_id, amount) VALUES (5, 5, 1);
-INSERT INTO Electronics_Shop.dbo.PC_type_order_details (order_id, pc_type_id, amount) VALUES (6, 6, 2);
+INSERT INTO Electronics_Shop.dbo.PC_type_order_details (order_id, pc_type_id, amount) VALUES (4, 1, 1);
+INSERT INTO Electronics_Shop.dbo.PC_type_order_details (order_id, pc_type_id, amount) VALUES (5, 2, 1);
+INSERT INTO Electronics_Shop.dbo.PC_type_order_details (order_id, pc_type_id, amount) VALUES (6, 3, 2);
