@@ -11,9 +11,10 @@ INSERT INTO Electronics_Shop.dbo.Peripherals (name, price) VALUES ('Enhanced Mon
 
 INSERT INTO Electronics_Shop.dbo.Orders (customer_id, date, employee_helper_id) VALUES (1, '2019-10-15 08:00:29.000', 2);
 INSERT INTO Electronics_Shop.dbo.Orders (customer_id, date, employee_helper_id) VALUES (2, '2017-12-15 08:00:46.000', 3);
-INSERT INTO Electronics_Shop.dbo.Orders (customer_id, date, employee_helper_id) VALUES (3, '2018-10-15 08:00:59.000', 1);
+INSERT INTO Electronics_Shop.dbo.Orders (customer_id, date, employee_helper_id) VALUES (3, '2018-07-19 08:00:59.000', 1);
 -- INSERT INTO Electronics_Shop.dbo.Orders (customer_id, date, employee_helper_id) VALUES (3, '2018-10-15 08:00:59.000', 7);
 
 INSERT INTO Electronics_Shop.dbo.PC_type_order_details (order_id, pc_type_id, amount) VALUES (4, 1, 1);
 INSERT INTO Electronics_Shop.dbo.PC_type_order_details (order_id, pc_type_id, amount) VALUES (5, 2, 1);
 INSERT INTO Electronics_Shop.dbo.PC_type_order_details (order_id, pc_type_id, amount) VALUES (6, 3, 2);
+

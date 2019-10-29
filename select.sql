@@ -37,7 +37,57 @@ FROM Customers C
          JOIN Peripherals P ON Pod.peripheral_id = P.peripheral_id
 WHERE LOWER(P.name) LIKE '%mouse%'
 
--- Let's see who worked on his/her birthday --TODO comparing date to datetime?
+-- Let's see who worked on his/her birthday
 SELECT E.employee_id, E.name
 FROM Employees E
-WHERE E.birthday IN (SELECT CONVERT(DATE, O.date) FROM Orders O WHERE E.employee_id = O.employee_helper_id)
+WHERE CONCAT(DAY(E.birthday), MONTH(E.birthday)) IN
+      (SELECT CONCAT(DAY(O.date), MONTH(O.date)) FROM Orders O WHERE E.employee_id = O.employee_helper_id)
+
+-- Let's see if people actually buy PC's with 16 GIGs of RAM
+
+SELECT P.pc_type_id, P.name
+FROM PC_types P
+         JOIN Ram_types R ON P.ram_type_id = R.ram_type_id
+WHERE R.memory = 16
+    EXCEPT
+SELECT DISTINCT P.pc_type_id, P.name
+FROM PC_types P
+         JOIN PC_type_order_details POD ON P.pc_type_id = POD.pc_type_id
+
+-- See the customers that only ordered peripherals
+SELECT C.customer_id, C.name
+FROM Customers C
+         JOIN Orders O ON C.customer_id = O.customer_id
+WHERE O.order_id NOT IN
+      (SELECT O.order_id
+       FROM Orders O
+                JOIN PC_type_order_details Ptod ON O.order_id = Ptod.order_id)
+
+-- Check how many peripherals were sold with each computer type in increasing order
+SELECT P1.pc_type_id, P1.name, T.peripheral_count
+FROM PC_types P1
+         JOIN
+     (SELECT P.pc_type_id, COUNT(PR.name) AS peripheral_count
+      FROM PC_types P
+               LEFT JOIN PC_type_order_details Ptod ON P.pc_type_id = Ptod.pc_type_id
+               LEFT JOIN Orders O ON Ptod.order_id = O.order_id
+               LEFT JOIN Peripheral_order_details Pod ON O.order_id = Pod.order_id
+               LEFT JOIN Peripherals PR ON Pod.peripheral_id = PR.peripheral_id
+      GROUP BY P.pc_type_id) T ON P1.pc_type_id = T.pc_type_id
+ORDER BY T.peripheral_count
+
+-- See all the recent orders
+
+SELECT TOP 10 O.order_id,O.progress,O.date,C.name AS customer_name,E.name AS helper_name
+FROM Orders O
+         JOIN Employees E ON O.employee_helper_id = E.employee_id
+         RIGHT JOIN Customers C ON O.customer_id = C.customer_id
+ORDER BY O.date DESC
+
+-- See the interaction between customers and employees
+
+SELECT DISTINCT C.name AS customer_name, E.name AS employee_name
+FROM Orders O
+         FULL JOIN Customers C ON O.customer_id = C.customer_id
+         FULL JOIN Employees E ON O.employee_helper_id = E.employee_id
+
