@@ -49,3 +49,7 @@ INSERT INTO Electronics_Shop.dbo.Peripheral_order_details (order_id, peripheral_
 INSERT INTO Electronics_Shop.dbo.Peripheral_order_details (order_id, peripheral_id, amount) VALUES (2, 3, 1);
 INSERT INTO Electronics_Shop.dbo.Peripheral_order_details (order_id, peripheral_id, amount) VALUES (3, 1, 2);
 INSERT INTO Electronics_Shop.dbo.Peripheral_order_details (order_id, peripheral_id, amount) VALUES (3, 2, 1);
+
+UPDATE CPU_types SET frequency=3.3 WHERE cpu_type_id=1
+UPDATE CPU_types SET frequency=3.5 WHERE cpu_type_id=2
+UPDATE CPU_types SET frequency=3.7 WHERE cpu_type_id=3

@@ -120,3 +120,5 @@ ALTER TABLE Hard_drive_types
 ADD price INT
 
 
+ALTER TABLE CPU_types
+ADD frequency DOUBLE PRECISION

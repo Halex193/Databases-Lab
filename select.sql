@@ -1,4 +1,5 @@
 -- Compute the PC prices
+CREATE VIEW PC_prices AS
 SELECT PCs.pc_type_id,
        PCs.name,
        (SELECT C.price FROM CPU_types C WHERE C.cpu_type_id = PCs.cpu_type_id) +
@@ -37,11 +38,16 @@ FROM Customers C
          JOIN Peripherals P ON Pod.peripheral_id = P.peripheral_id
 WHERE LOWER(P.name) LIKE '%mouse%'
 
--- Let's see who worked on his/her birthday
-SELECT E.employee_id, E.name
-FROM Employees E
-WHERE CONCAT(DAY(E.birthday), MONTH(E.birthday)) IN
-      (SELECT CONCAT(DAY(O.date), MONTH(O.date)) FROM Orders O WHERE E.employee_id = O.employee_helper_id)
+-- Show all orders of Răzvan (id = 2) helped by Mihaela (id = 3) to identify the dates
+SELECT O.order_id, O.date, O.progress
+FROM Orders O
+         JOIN Customers C ON O.customer_id = C.customer_id
+WHERE C.customer_id = 2
+  AND O.customer_id IN
+      (SELECT O.customer_id
+       FROM Orders O2
+                JOIN Employees E ON O2.employee_helper_id = E.employee_id
+       WHERE E.employee_id = 3)
 
 -- Let's see if people actually buy PC's with 16 GIGs of RAM
 
@@ -78,7 +84,17 @@ ORDER BY T.peripheral_count
 
 -- See all the recent orders
 
-SELECT TOP 10 O.order_id,O.progress,O.date,C.name AS customer_name,E.name AS helper_name
+SELECT
+TOP 10
+O.order_id
+,
+O.progress
+,
+O.date
+,
+C.name AS customer_name
+,
+E.name AS helper_name
 FROM Orders O
          JOIN Employees E ON O.employee_helper_id = E.employee_id
          RIGHT JOIN Customers C ON O.customer_id = C.customer_id
@@ -91,3 +107,63 @@ FROM Orders O
          FULL JOIN Customers C ON O.customer_id = C.customer_id
          FULL JOIN Employees E ON O.employee_helper_id = E.employee_id
 
+-- Let's see who worked on his/her birthday
+SELECT E.employee_id, E.name
+FROM Employees E
+WHERE CONCAT(DAY(E.birthday), MONTH(E.birthday)) IN
+      (SELECT CONCAT(DAY(O.date), MONTH(O.date)) FROM Orders O WHERE E.employee_id = O.employee_helper_id)
+
+-- Show PCs that have ram that is more expensive than average
+SELECT P.pc_type_id, P.name
+FROM PC_types P
+WHERE P.ram_type_id IN (
+    SELECT R.ram_type_id
+    FROM Ram_types R
+    WHERE R.price > (
+        SELECT AVG(R2.price)
+        FROM Ram_types R2
+    )
+)
+
+-- Show customers that bought PCs with ASUS TUF Z390-PLUS GAMING motherboard (id = 2)
+SELECT C.customer_id, C.name
+FROM Customers C
+WHERE EXISTS(
+              SELECT *
+              FROM Orders O
+                       JOIN PC_type_order_details Ptod ON O.order_id = Ptod.order_id
+                       JOIN PC_types Pt ON Ptod.pc_type_id = Pt.pc_type_id
+                       JOIN Motherboard_types Mt ON Pt.motherboard_id = Mt.motherboard_type_id
+              WHERE Mt.motherboard_type_id = 2
+                AND C.customer_id = O.customer_id
+          )
+
+-- Peripheral types on the shelve have been misplaced with CPU types with the same price.
+-- Find the items in order to replace their types on the shelve.
+SELECT P.peripheral_id, P.name, P.price
+FROM Peripherals P
+WHERE EXISTS(
+              SELECT *
+              FROM CPU_types C
+              WHERE C.price = P.price
+          )
+
+-- Show PCs that were bought in descending order of price
+SELECT T.pc_type_id, T.name, Pr.price
+FROM (SELECT P.pc_type_id, P.name
+      FROM PC_types P
+               JOIN PC_type_order_details Ptod ON P.pc_type_id = Ptod.pc_type_id) AS T,
+     PC_prices Pr
+WHERE T.pc_type_id = Pr.pc_type_id
+ORDER BY Pr.price DESC
+
+-- Show the least expensive PCs with SSDs
+SELECT TOP 5 T.pc_type_id, T.name
+FROM (SELECT P.pc_type_id, P.name
+    FROM PC_types P JOIN Hard_drive_types H ON P.hard_drive_id = H.hard_drive_type_id
+    WHERE H.type = 'SSD') AS T, PC_prices Pr
+WHERE T.pc_type_id = Pr.pc_type_id
+ORDER BY Pr.price
+
+-- For each CPU socket type, show the best frequency
+-- TODO
