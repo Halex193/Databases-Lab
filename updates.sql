@@ -1,15 +1,19 @@
 UPDATE Power_supplies
 SET voltage=500
 WHERE voltage < 500
+
 UPDATE Orders
 SET date = '2018-12-12'
 WHERE order_id IN (1, 2)
+
 DELETE
 FROM Orders
 WHERE date BETWEEN '2018-1-1' AND '2018-12-31'
+
 DELETE
 FROM Peripherals
 WHERE name LIKE 'Basic %'
+
 UPDATE Customers
 SET fidelity_points=10
 WHERE name LIKE 'M%'
@@ -39,6 +43,14 @@ INSERT INTO Electronics_Shop.dbo.PC_order_details (order_id, pc_id, amount)
 VALUES (5, 2, 1);
 INSERT INTO Electronics_Shop.dbo.PC_order_details (order_id, pc_id, amount)
 VALUES (6, 3, 2);
+
+INSERT INTO Electronics_Shop.dbo.Peripheral_order_details (order_id, peripheral_id, amount) VALUES (4, 4, 1);
+INSERT INTO Electronics_Shop.dbo.Peripheral_order_details (order_id, peripheral_id, amount) VALUES (4, 5, 1);
+INSERT INTO Electronics_Shop.dbo.Peripheral_order_details (order_id, peripheral_id, amount) VALUES (4, 6, 1);
+INSERT INTO Electronics_Shop.dbo.Peripheral_order_details (order_id, peripheral_id, amount) VALUES (5, 5, 1);
+INSERT INTO Electronics_Shop.dbo.Peripheral_order_details (order_id, peripheral_id, amount) VALUES (5, 6, 1);
+INSERT INTO Electronics_Shop.dbo.Peripheral_order_details (order_id, peripheral_id, amount) VALUES (6, 4, 2);
+INSERT INTO Electronics_Shop.dbo.Peripheral_order_details (order_id, peripheral_id, amount) VALUES (6, 5, 1);
 
 UPDATE PCs
 SET hdd_id='3'

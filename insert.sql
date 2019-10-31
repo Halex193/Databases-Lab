@@ -2,13 +2,13 @@ INSERT INTO Electronics_Shop.dbo.CPUs (name, socket, price) VALUES ('INTEL® COR
 INSERT INTO Electronics_Shop.dbo.CPUs (name, socket, price) VALUES ('INTEL® CORE™ i7-9700T', 'FCLGA1151', 700);
 INSERT INTO Electronics_Shop.dbo.CPUs (name, socket, price) VALUES ('INTEL® CORE™ i7-9700T', 'FCLGA1151', 800);
 
-INSERT INTO Electronics_Shop.dbo.Customers (name, fidelity_points) VALUES ('Monica', 0);
-INSERT INTO Electronics_Shop.dbo.Customers (name, fidelity_points) VALUES ('Razvan', 5);
-INSERT INTO Electronics_Shop.dbo.Customers (name, fidelity_points) VALUES ('Mirabela', 6);
+INSERT INTO Electronics_Shop.dbo.Customers (name, fidelity_points, email) VALUES ('Monica', 0, 'monibanana21@gmail.com');
+INSERT INTO Electronics_Shop.dbo.Customers (name, fidelity_points, email) VALUES ('Razvan', 5, 'razvanbolovan@me.com');
+INSERT INTO Electronics_Shop.dbo.Customers (name, fidelity_points, email) VALUES ('Mirabela', 6, 'mirabela@yahoo.com');
 
-INSERT INTO Electronics_Shop.dbo.Employees (name, birthday, bonus_hours) VALUES ('Horatiu', '1999-07-19', 10);
-INSERT INTO Electronics_Shop.dbo.Employees (name, birthday, bonus_hours) VALUES ('Alexandru', '1999-08-19', 12);
-INSERT INTO Electronics_Shop.dbo.Employees (name, birthday, bonus_hours) VALUES ('Mihaela', '1999-07-20', 5);
+INSERT INTO Electronics_Shop.dbo.Employees (name, birthday, bonus_hours, email) VALUES ('Horatiu', '1999-07-19', 10, 'horatiu@gmail.com');
+INSERT INTO Electronics_Shop.dbo.Employees (name, birthday, bonus_hours, email) VALUES ('Alexandru', '1999-08-19', 12, 'alex99@hotmail.com');
+INSERT INTO Electronics_Shop.dbo.Employees (name, birthday, bonus_hours, email) VALUES ('Mihaela', '1999-07-20', 5, 'mihapufi29@me.com');
 
 INSERT INTO Electronics_Shop.dbo.Power_supplies (name, voltage, price) VALUES ('BFG Tech LS-550', 550, 300);
 INSERT INTO Electronics_Shop.dbo.Power_supplies (name, voltage, price) VALUES ('Thermaltake Litepower', 600, 400);
