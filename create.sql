@@ -34,65 +34,65 @@ CREATE TABLE Peripheral_order_details
     amount        INT NOT NULL DEFAULT 1
 )
 
-CREATE TABLE CPU_types
+CREATE TABLE CPUs
 (
-    cpu_type_id INT IDENTITY PRIMARY KEY,
+    cpu_id INT IDENTITY PRIMARY KEY,
     name        NVARCHAR(200) NOT NULL,
     socket      NVARCHAR(200) NOT NULL
 )
 
-CREATE TABLE Hard_drive_types
+CREATE TABLE HDDs
 (
-    hard_drive_type_id INT IDENTITY PRIMARY KEY,
+    hdd_id INT IDENTITY PRIMARY KEY,
     name               NVARCHAR(200) NOT NULL,
     type               NVARCHAR(200) NOT NULL,
     transfer_rate      INT
 )
 
-CREATE TABLE Motherboard_types
+CREATE TABLE Motherboards
 (
-    motherboard_type_id INT IDENTITY PRIMARY KEY,
+    motherboard_id INT IDENTITY PRIMARY KEY,
     name                NVARCHAR(200) NOT NULL,
     cpu_socket          NVARCHAR(200) NOT NULL
 )
 
-CREATE TABLE Power_supply_types
+CREATE TABLE Power_supplies
 (
-    power_supply_type_id INT IDENTITY PRIMARY KEY,
+    power_supply_id INT IDENTITY PRIMARY KEY,
     name                 NVARCHAR(200) NOT NULL,
     voltage              INT
 )
 
-CREATE TABLE Ram_types
+CREATE TABLE RAMs
 (
-    ram_type_id INT IDENTITY PRIMARY KEY,
+    ram_id INT IDENTITY PRIMARY KEY,
     name        NVARCHAR(200) NOT NULL,
     type        NVARCHAR(200),
     memory      INT
 )
 
-CREATE TABLE PC_types
+CREATE TABLE PCs
 (
-    pc_type_id           INT IDENTITY PRIMARY KEY,
+    pc_id           INT IDENTITY PRIMARY KEY,
     name                 NVARCHAR(200),
-    cpu_type_id          INT REFERENCES CPU_types (cpu_type_id) ON DELETE SET NULL,
-    hard_drive_id        INT REFERENCES hard_drive_types (hard_drive_type_id) ON DELETE SET NULL,
-    motherboard_id       INT REFERENCES motherboard_types (motherboard_type_id) ON DELETE SET NULL,
-    ram_type_id          INT REFERENCES ram_types (ram_type_id) ON DELETE SET NULL,
-    power_supply_type_id INT REFERENCES power_supply_types (power_supply_type_id) ON DELETE SET NULL
+    cpu_id          INT REFERENCES CPUs (cpu_id) ON DELETE SET NULL,
+    hdd_id        INT REFERENCES HDDs (hdd_id) ON DELETE SET NULL,
+    motherboard_id       INT REFERENCES Motherboards (motherboard_id) ON DELETE SET NULL,
+    ram_id          INT REFERENCES rams (ram_id) ON DELETE SET NULL,
+    power_supply_id INT REFERENCES power_supplies (power_supply_id) ON DELETE SET NULL
 )
 
-CREATE TABLE PC_type_order_details
+CREATE TABLE PC_order_details
 (
     order_id   INT REFERENCES orders (order_id) ON DELETE CASCADE,
-    pc_type_id INT REFERENCES PC_types (pc_type_id),
+    pc_id INT REFERENCES PCs (pc_id),
     amount     INT NOT NULL DEFAULT 1
 )
 
 ALTER TABLE Employees
     ALTER COLUMN name NVARCHAR(200) NOT NULL
 
-ALTER TABLE Hard_drive_types
+ALTER TABLE HDDs
 ADD capacity INT
 
 ALTER TABLE Orders
@@ -101,24 +101,24 @@ ADD progress NVARCHAR(200) NOT NULL DEFAULT 'not delivered'
 ALTER TABLE Orders
 ADD CONSTRAINT Progress_check CHECK (progress = 'not delivered' OR progress = 'delivered' OR progress = 'in progress')
 
-ALTER TABLE CPU_types
+ALTER TABLE CPUs
 ADD price INT
 
-ALTER TABLE Motherboard_types
+ALTER TABLE Motherboards
 ADD price INT
 
-ALTER TABLE Power_supply_types
+ALTER TABLE Power_supplies
 ADD price INT
 
 ALTER TABLE Peripherals
 ADD price INT
 
-ALTER TABLE Ram_types
+ALTER TABLE RAMs
 ADD price INT
 
-ALTER TABLE Hard_drive_types
+ALTER TABLE HDDs
 ADD price INT
 
 
-ALTER TABLE CPU_types
+ALTER TABLE CPUs
 ADD frequency DOUBLE PRECISION

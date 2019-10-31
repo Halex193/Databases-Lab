@@ -1,4 +1,4 @@
-UPDATE Power_supply_types
+UPDATE Power_supplies
 SET voltage=500
 WHERE voltage < 500
 UPDATE Orders
@@ -14,7 +14,7 @@ UPDATE Customers
 SET fidelity_points=10
 WHERE name LIKE 'M%'
   AND fidelity_points >= 5
-UPDATE Ram_types
+UPDATE RAMs
 SET memory=8
 WHERE memory IS NULL
 
@@ -33,13 +33,13 @@ INSERT INTO Electronics_Shop.dbo.Orders (customer_id, date, employee_helper_id)
 VALUES (3, '2018-07-19 08:00:59.000', 1);
 -- INSERT INTO Electronics_Shop.dbo.Orders (customer_id, date, employee_helper_id) VALUES (3, '2018-10-15 08:00:59.000', 7);
 
-INSERT INTO Electronics_Shop.dbo.PC_type_order_details (order_id, pc_type_id, amount)
+INSERT INTO Electronics_Shop.dbo.PC_order_details (order_id, pc_id, amount)
 VALUES (4, 1, 1);
-INSERT INTO Electronics_Shop.dbo.PC_type_order_details (order_id, pc_type_id, amount)
+INSERT INTO Electronics_Shop.dbo.PC_order_details (order_id, pc_id, amount)
 VALUES (5, 2, 1);
-INSERT INTO Electronics_Shop.dbo.PC_type_order_details (order_id, pc_type_id, amount)
+INSERT INTO Electronics_Shop.dbo.PC_order_details (order_id, pc_id, amount)
 VALUES (6, 3, 2);
 
-UPDATE PC_types
-SET hard_drive_id='3'
-WHERE pc_type_id = 3
+UPDATE PCs
+SET hdd_id='3'
+WHERE pc_id = 3
