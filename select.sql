@@ -216,6 +216,12 @@ SELECT *
 FROM Power_supplies P
 WHERE P.price = (SELECT MAX(P.price) FROM Power_supplies P)
 
+-- Create a panel with all the customer names, sorted in alphabetical order
+SELECT DISTINCT C.name
+FROM Customers C
+ORDER BY C.name
+
+
 -- The company is throwing a party in the weekend!
 -- We want to send the invitations by email
 -- There are two types of invitations: normal and VIP
