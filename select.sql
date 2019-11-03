@@ -170,6 +170,52 @@ FROM RAMs R
 GROUP BY R.type
 HAVING MAX(R.memory) <= (SELECT AVG(R2.memory) FROM RAMs R2)
 
+-- Show the employees that have more orders in progress than not delivered
+SELECT E.employee_id, E.name
+FROM Employees E,
+(SELECT O.employee_helper_id, COUNT(*) AS orders
+FROM Orders O
+WHERE O.progress = 'in progress'
+GROUP BY O.employee_helper_id
+HAVING COUNT(*) > (SELECT COUNT(*) FROM Orders O2 WHERE O2.employee_helper_id = O.employee_helper_id AND O2.progress = 'not delivered')) AS T
+WHERE E.employee_id = T.employee_helper_id
+
+-- See which employees helped at least one customer
+SELECT E.employee_id, E.name
+FROM Employees E
+WHERE E.employee_id = ANY (SELECT O.employee_helper_id FROM Orders O)
+
+SELECT E.employee_id, E.name
+FROM Employees E
+WHERE E.employee_id IN (SELECT O.employee_helper_id FROM Orders O)
+
+-- See which PCs were not yet ordered
+SELECT P.pc_id, P.name
+FROM PCs P
+WHERE P.pc_id != ALL (SELECT Pod.pc_id FROM PC_order_details Pod)
+
+SELECT P.pc_id, P.name
+FROM PCs P
+WHERE P.pc_id NOT IN (SELECT Pod.pc_id FROM PC_order_details Pod)
+
+-- See the cheapest RAM available
+SELECT *
+FROM RAMs R
+WHERE R.price <= ALL (SELECT R2.price FROM RAMs R2)
+
+SELECT *
+FROM RAMs R
+WHERE R.price = (SELECT MIN(R2.price) FROM RAMs R2)
+
+-- See the most expensive power supplies
+SELECT *
+FROM Power_supplies P
+WHERE P.price >= ALL (SELECT P.price FROM Power_supplies P)
+
+SELECT *
+FROM Power_supplies P
+WHERE P.price = (SELECT MAX(P.price) FROM Power_supplies P)
+
 -- The company is throwing a party in the weekend!
 -- We want to send the invitations by email
 -- There are two types of invitations: normal and VIP

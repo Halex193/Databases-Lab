@@ -29,12 +29,12 @@ VALUES ('Enhanced Mouse', 150);
 INSERT INTO Electronics_Shop.dbo.Peripherals (name, price)
 VALUES ('Enhanced Monitor', 1000);
 
-INSERT INTO Electronics_Shop.dbo.Orders (customer_id, date, employee_helper_id)
-VALUES (1, '2019-10-15 08:00:29.000', 2);
-INSERT INTO Electronics_Shop.dbo.Orders (customer_id, date, employee_helper_id)
-VALUES (2, '2017-12-15 08:00:46.000', 3);
-INSERT INTO Electronics_Shop.dbo.Orders (customer_id, date, employee_helper_id)
-VALUES (3, '2018-07-19 08:00:59.000', 1);
+INSERT INTO Electronics_Shop.dbo.Orders (customer_id, date, employee_helper_id, progress)
+VALUES (1, '2019-10-15 08:00:29.000', 2, 'not delivered');
+INSERT INTO Electronics_Shop.dbo.Orders (customer_id, date, employee_helper_id, progress)
+VALUES (2, '2017-12-15 08:00:46.000', 3, 'delivered');
+INSERT INTO Electronics_Shop.dbo.Orders (customer_id, date, employee_helper_id, progress)
+VALUES (3, '2018-07-19 08:00:59.000', 1, 'in progress');
 -- INSERT INTO Electronics_Shop.dbo.Orders (customer_id, date, employee_helper_id) VALUES (3, '2018-10-15 08:00:59.000', 7);
 
 INSERT INTO Electronics_Shop.dbo.PC_order_details (order_id, pc_id, amount)
