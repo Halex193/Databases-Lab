@@ -1,13 +1,13 @@
 CREATE TABLE Customers
 (
-    customer_id     INT IDENTITY PRIMARY KEY,
+    customer_id     INT IDENTITY CONSTRAINT PK_customer PRIMARY KEY,
     name            NVARCHAR(200),
     fidelity_points INT NOT NULL CONSTRAINT DefaultFidelityPoints DEFAULT 0
 )
 
 CREATE TABLE Employees
 (
-    employee_id INT IDENTITY PRIMARY KEY,
+    employee_id INT IDENTITY CONSTRAINT PK_employee PRIMARY KEY,
     name        NVARCHAR(100)  NOT NULL,
     birthday    DATE,
     bonus_hours INT DEFAULT 0 NOT NULL
@@ -29,21 +29,21 @@ CREATE TABLE Peripherals
 
 CREATE TABLE Peripheral_order_details
 (
-    order_id      INT REFERENCES orders (order_id) ON DELETE CASCADE,
-    peripheral_id INT REFERENCES peripherals (peripheral_id),
+    order_id      INT NOT NULL REFERENCES orders (order_id) ON DELETE CASCADE,
+    peripheral_id INT NOT NULL REFERENCES peripherals (peripheral_id),
     amount        INT NOT NULL DEFAULT 1
 )
 
 CREATE TABLE CPUs
 (
-    cpu_id INT IDENTITY PRIMARY KEY,
+    cpu_id INT IDENTITY CONSTRAINT PK_cpu PRIMARY KEY,
     name        NVARCHAR(200) NOT NULL,
     socket      NVARCHAR(200) NOT NULL
 )
 
 CREATE TABLE HDDs
 (
-    hdd_id INT IDENTITY PRIMARY KEY,
+    hdd_id INT IDENTITY CONSTRAINT PK_hdd PRIMARY KEY,
     name               NVARCHAR(200) NOT NULL,
     type               NVARCHAR(200) NOT NULL,
     transfer_rate      INT
@@ -51,21 +51,21 @@ CREATE TABLE HDDs
 
 CREATE TABLE Motherboards
 (
-    motherboard_id INT IDENTITY PRIMARY KEY,
+    motherboard_id INT IDENTITY CONSTRAINT PK_motherboard PRIMARY KEY,
     name                NVARCHAR(200) NOT NULL,
     cpu_socket          NVARCHAR(200) NOT NULL
 )
 
 CREATE TABLE Power_supplies
 (
-    power_supply_id INT IDENTITY PRIMARY KEY,
+    power_supply_id INT IDENTITY CONSTRAINT PK_power_supply PRIMARY KEY,
     name                 NVARCHAR(200) NOT NULL,
     voltage              INT
 )
 
 CREATE TABLE RAMs
 (
-    ram_id INT IDENTITY PRIMARY KEY,
+    ram_id INT IDENTITY CONSTRAINT PK_ram PRIMARY KEY,
     name        NVARCHAR(200) NOT NULL,
     type        NVARCHAR(200),
     memory      INT
@@ -73,7 +73,7 @@ CREATE TABLE RAMs
 
 CREATE TABLE PCs
 (
-    pc_id           INT IDENTITY PRIMARY KEY,
+    pc_id           INT IDENTITY CONSTRAINT PK_pc PRIMARY KEY,
     name                 NVARCHAR(200),
     cpu_id          INT REFERENCES CPUs (cpu_id) ON DELETE SET NULL,
     hdd_id        INT REFERENCES HDDs (hdd_id) ON DELETE SET NULL,
@@ -84,8 +84,8 @@ CREATE TABLE PCs
 
 CREATE TABLE PC_order_details
 (
-    order_id   INT REFERENCES orders (order_id) ON DELETE CASCADE,
-    pc_id INT REFERENCES PCs (pc_id),
+    order_id   INT NOT NULL REFERENCES orders (order_id) ON DELETE CASCADE,
+    pc_id INT NOT NULL REFERENCES PCs (pc_id),
     amount     INT NOT NULL DEFAULT 1
 )
 
@@ -127,3 +127,7 @@ ADD email NVARCHAR(100)
 
 ALTER TABLE Customers
     ADD email NVARCHAR(100)
+
+CREATE TABLE DatabaseVersion(
+    version INT NOT NULL
+)

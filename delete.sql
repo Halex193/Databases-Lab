@@ -10,3 +10,5 @@ DROP TABLE Peripherals
 DROP TABLE Orders
 DROP TABLE Employees
 DROP TABLE Customers
+DROP TABLE DatabaseVersion
+DROP TABLE PC_descriptions

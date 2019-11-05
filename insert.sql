@@ -53,3 +53,5 @@ INSERT INTO Electronics_Shop.dbo.Peripheral_order_details (order_id, peripheral_
 UPDATE CPUs SET frequency=3.3 WHERE cpu_id=1
 UPDATE CPUs SET frequency=3.5 WHERE cpu_id=2
 UPDATE CPUs SET frequency=3.7 WHERE cpu_id=3
+
+INSERT INTO DatabaseVersion (version) VALUES (1)

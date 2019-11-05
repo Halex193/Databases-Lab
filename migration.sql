@@ -48,33 +48,35 @@ GO
 CREATE OR ALTER PROCEDURE AddOrderDetailsPrimaryKeys
 AS
     ALTER TABLE PC_order_details
-        ADD CONSTRAINT PK_PC_order_details PRIMARY KEY (order_id, pc_id)
+    ADD CONSTRAINT PK_pc_order_details PRIMARY KEY (order_id, pc_id)
+
     ALTER TABLE Peripheral_order_details
-        ADD CONSTRAINT PK_Peripheral_order_details PRIMARY KEY (order_id, peripheral_id)
+    ADD CONSTRAINT PK_peripheral_order_details PRIMARY KEY (order_id, peripheral_id)
 GO
 
-CREATE OR ALTER PROCEDURE AddOrderDetailsPrimaryKeys
+CREATE OR ALTER PROCEDURE DropOrderDetailsPrimaryKeys
 AS
     ALTER TABLE PC_order_details
-        DROP CONSTRAINT PK_PC_order_details
+        DROP CONSTRAINT PK_pc_order_details
+
     ALTER TABLE Peripheral_order_details
-        DROP CONSTRAINT PK_Peripheral_order_details
+        DROP CONSTRAINT PK_peripheral_order_details
 GO
 
 CREATE OR ALTER PROCEDURE UniqueEmail
 AS
     ALTER TABLE Customers
-        ADD CONSTRAINT UniqueEmail UNIQUE (email)
+        ADD CONSTRAINT UNIQUE_customer_email UNIQUE (email)
     ALTER TABLE Employees
-        ADD CONSTRAINT UniqueEmail UNIQUE (email)
+        ADD CONSTRAINT UNIQUE_employee_email UNIQUE (email)
 GO
 
 CREATE OR ALTER PROCEDURE NormalEmail
 AS
     ALTER TABLE Customers
-        DROP CONSTRAINT UniqueEmail
+        DROP CONSTRAINT UNIQUE_customer_email
     ALTER TABLE Employees
-        DROP CONSTRAINT UniqueEmail
+        DROP CONSTRAINT UNIQUE_employee_email
 GO
 
 CREATE OR ALTER PROCEDURE CreateDescriptionTable
@@ -87,7 +89,7 @@ AS
     )
 GO
 
-CREATE OR ALTER PROCEDURE CreateDescriptionTable
+CREATE OR ALTER PROCEDURE DropDescriptionTable
 AS
     DROP TABLE PC_descriptions
 GO
@@ -98,8 +100,63 @@ AS
         ADD description_id INT CONSTRAINT FK_description REFERENCES PC_descriptions (description_id)
 GO
 
-CREATE OR ALTER PROCEDURE AddDescriptionForeignKey
+CREATE OR ALTER PROCEDURE DropDescriptionForeignKey
 AS
     ALTER TABLE PCs
-        ADD description_id INT REFERENCES PC_descriptions (description_id)
+        DROP CONSTRAINT FK_description
+    ALTER TABLE PCs
+        DROP COLUMN description_id
+GO
+
+CREATE OR ALTER PROCEDURE MigrateFrom1To2
+AS
+    EXECUTE FloatFidelityPoints
+    EXECUTE AddOrderRating
+    EXECUTE AddDefaultFrequency
+    EXECUTE AddOrderDetailsPrimaryKeys
+    EXECUTE UniqueEmail
+    EXECUTE CreateDescriptionTable
+    EXECUTE AddDescriptionForeignKey
+GO
+
+CREATE OR ALTER PROCEDURE MigrateFrom2To1
+AS
+    EXECUTE DropDescriptionForeignKey
+    EXECUTE DropDescriptionTable
+    EXECUTE NormalEmail
+    EXECUTE DropOrderDetailsPrimaryKeys
+    EXECUTE RemoveDefaultFrequency
+    EXECUTE RemoveOrderRating
+    EXECUTE IntFidelityPoints
+GO
+
+CREATE OR ALTER PROCEDURE GetDatabaseVersion @Version INT OUTPUT
+AS
+    SELECT @Version = DV.version FROM DatabaseVersion DV
+GO
+
+CREATE OR ALTER PROCEDURE Migrate @Version INT
+AS
+    DECLARE @OldVersion INT
+    EXECUTE GetDatabaseVersion @OldVersion OUTPUT
+
+    WHILE @OldVersion < @Version
+    BEGIN
+        IF @OldVersion = 1
+            BEGIN
+                EXECUTE MigrateFrom1To2
+            END
+        SET @OldVersion = @OldVersion + 1
+    END
+
+    WHILE @OldVersion > @Version
+    BEGIN
+        IF @OldVersion = 2
+            BEGIN
+                EXECUTE MigrateFrom2To1
+            END
+        SET @OldVersion = @OldVersion - 1
+    END
+
+    UPDATE DatabaseVersion SET version = @Version
 GO
