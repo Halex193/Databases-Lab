@@ -2,7 +2,7 @@ CREATE TABLE Customers
 (
     customer_id     INT IDENTITY PRIMARY KEY,
     name            NVARCHAR(200),
-    fidelity_points INT NOT NULL DEFAULT 0
+    fidelity_points INT NOT NULL CONSTRAINT DefaultFidelityPoints DEFAULT 0
 )
 
 CREATE TABLE Employees
