@@ -113,61 +113,58 @@ SELECT @Version = DV.version
 FROM DatabaseVersion DV
 GO
 
+CREATE OR ALTER PROCEDURE NextVersion @Version INT
+AS
+    SET @Version = @Version + 1
+    DECLARE @DoProcedure NVARCHAR(500)
+    SELECT @DoProcedure = doProcedure FROM Versions WHERE version = @Version
+    SET @DoProcedure = N'EXECUTE ' + @DoProcedure
+    EXECUTE sp_executesql @statement = @DoProcedure
+GO
+
+CREATE OR ALTER PROCEDURE PreviousVersion @Version INT
+AS
+    DECLARE @UndoProcedure NVARCHAR(500)
+    SELECT @UndoProcedure = undoProcedure FROM Versions WHERE version = @Version
+    SET @UndoProcedure = N'EXECUTE ' + @UndoProcedure
+    EXECUTE sp_executesql @statement = @UndoProcedure
+GO
+
 CREATE OR ALTER PROCEDURE Migrate @Version INT
 AS
 DECLARE @OldVersion INT
     EXECUTE GetDatabaseVersion @OldVersion OUTPUT
     WHILE @OldVersion < @Version
         BEGIN
-            IF @OldVersion = 1
-                EXECUTE FloatFidelityPoints
-            ELSE
-                IF @OldVersion = 2
-                    EXECUTE AddOrderRating
-                ELSE
-                    IF @OldVersion = 3
-                        EXECUTE AddDefaultFrequency
-                    ELSE
-                        IF @OldVersion = 4
-                            EXECUTE AddOrderDetailsPrimaryKeys
-                        ELSE
-                            IF @OldVersion = 5
-                                EXECUTE UniqueEmail
-                            ELSE
-                                IF @OldVersion = 6
-                                    EXECUTE CreateDescriptionTable
-                                ELSE
-                                    IF @OldVersion = 7
-                                        EXECUTE AddDescriptionForeignKey
-
+            EXECUTE NextVersion @OldVersion
             SET @OldVersion = @OldVersion + 1
         END
     WHILE @OldVersion > @Version
         BEGIN
-            IF @OldVersion = 8
-                EXECUTE DropDescriptionForeignKey
-            ELSE
-                IF @OldVersion = 7
-                    EXECUTE DropDescriptionTable
-                ELSE
-                    IF @OldVersion = 6
-                        EXECUTE NormalEmail
-                    ELSE
-                        IF @OldVersion = 5
-                            EXECUTE DropOrderDetailsPrimaryKeys
-                        ELSE
-                            IF @OldVersion = 4
-                                EXECUTE RemoveDefaultFrequency
-                            ELSE
-                                IF @OldVersion = 3
-                                    EXECUTE RemoveOrderRating
-                                ELSE
-                                    IF @OldVersion = 2
-                                        EXECUTE IntFidelityPoints
-
+            EXECUTE PreviousVersion @OldVersion
             SET @OldVersion = @OldVersion - 1
         END
 
 UPDATE DatabaseVersion
 SET version = @Version
+GO
+
+DELETE
+FROM Versions
+INSERT INTO Versions (version, doProcedure, undoProcedure)
+VALUES (1, NULL, NULL)
+INSERT INTO Versions (version, doProcedure, undoProcedure)
+VALUES (2, 'FloatFidelityPoints', 'IntFidelityPoints')
+INSERT INTO Versions (version, doProcedure, undoProcedure)
+VALUES (3, 'AddOrderRating', 'RemoveOrderRating')
+INSERT INTO Versions (version, doProcedure, undoProcedure)
+VALUES (4, 'AddDefaultFrequency', 'RemoveDefaultFrequency')
+INSERT INTO Versions (version, doProcedure, undoProcedure)
+VALUES (5, 'AddOrderDetailsPrimaryKeys', 'DropOrderDetailsPrimaryKeys')
+INSERT INTO Versions (version, doProcedure, undoProcedure)
+VALUES (6, 'UniqueEmail', 'NormalEmail')
+INSERT INTO Versions (version, doProcedure, undoProcedure)
+VALUES (7, 'CreateDescriptionTable', 'DropDescriptionTable')
+INSERT INTO Versions (version, doProcedure, undoProcedure)
+VALUES (8, 'AddDescriptionForeignKey', 'DropDescriptionForeignKey')
 GO
