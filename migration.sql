@@ -1,4 +1,4 @@
-CREATE OR ALTER PROC FloatFidelityPoints
+CREATE OR ALTER PROCEDURE FloatFidelityPoints
 AS
     ALTER TABLE Customers
         DROP CONSTRAINT DefaultFidelityPoints
@@ -8,7 +8,7 @@ AS
         ADD CONSTRAINT DefaultFidelityPoints DEFAULT 0 FOR fidelity_points
 GO
 
-CREATE OR ALTER PROC IntFidelityPoints
+CREATE OR ALTER PROCEDURE IntFidelityPoints
 AS
     ALTER TABLE Customers
         DROP CONSTRAINT DefaultFidelityPoints
@@ -48,17 +48,15 @@ GO
 CREATE OR ALTER PROCEDURE AddOrderDetailsPrimaryKeys
 AS
     ALTER TABLE PC_order_details
-    ADD CONSTRAINT PK_pc_order_details PRIMARY KEY (order_id, pc_id)
-
+        ADD CONSTRAINT PK_pc_order_details PRIMARY KEY (order_id, pc_id)
     ALTER TABLE Peripheral_order_details
-    ADD CONSTRAINT PK_peripheral_order_details PRIMARY KEY (order_id, peripheral_id)
+        ADD CONSTRAINT PK_peripheral_order_details PRIMARY KEY (order_id, peripheral_id)
 GO
 
 CREATE OR ALTER PROCEDURE DropOrderDetailsPrimaryKeys
 AS
     ALTER TABLE PC_order_details
         DROP CONSTRAINT PK_pc_order_details
-
     ALTER TABLE Peripheral_order_details
         DROP CONSTRAINT PK_peripheral_order_details
 GO
@@ -97,7 +95,8 @@ GO
 CREATE OR ALTER PROCEDURE AddDescriptionForeignKey
 AS
     ALTER TABLE PCs
-        ADD description_id INT CONSTRAINT FK_description REFERENCES PC_descriptions (description_id)
+        ADD description_id INT
+            CONSTRAINT FK_description REFERENCES PC_descriptions (description_id)
 GO
 
 CREATE OR ALTER PROCEDURE DropDescriptionForeignKey
@@ -108,55 +107,93 @@ AS
         DROP COLUMN description_id
 GO
 
-CREATE OR ALTER PROCEDURE MigrateFrom1To2
-AS
-    EXECUTE FloatFidelityPoints
-    EXECUTE AddOrderRating
-    EXECUTE AddDefaultFrequency
-    EXECUTE AddOrderDetailsPrimaryKeys
-    EXECUTE UniqueEmail
-    EXECUTE CreateDescriptionTable
-    EXECUTE AddDescriptionForeignKey
-GO
-
-CREATE OR ALTER PROCEDURE MigrateFrom2To1
-AS
-    EXECUTE DropDescriptionForeignKey
-    EXECUTE DropDescriptionTable
-    EXECUTE NormalEmail
-    EXECUTE DropOrderDetailsPrimaryKeys
-    EXECUTE RemoveDefaultFrequency
-    EXECUTE RemoveOrderRating
-    EXECUTE IntFidelityPoints
-GO
-
 CREATE OR ALTER PROCEDURE GetDatabaseVersion @Version INT OUTPUT
 AS
-    SELECT @Version = DV.version FROM DatabaseVersion DV
+SELECT @Version = DV.version
+FROM DatabaseVersion DV
 GO
 
 CREATE OR ALTER PROCEDURE Migrate @Version INT
 AS
-    DECLARE @OldVersion INT
+DECLARE @OldVersion INT
     EXECUTE GetDatabaseVersion @OldVersion OUTPUT
-
     WHILE @OldVersion < @Version
-    BEGIN
-        IF @OldVersion = 1
-            BEGIN
-                EXECUTE MigrateFrom1To2
-            END
-        SET @OldVersion = @OldVersion + 1
-    END
-
+        BEGIN
+            IF @OldVersion = 1
+                BEGIN
+                    EXECUTE FloatFidelityPoints
+                END
+            ELSE
+                IF @OldVersion = 2
+                    BEGIN
+                        EXECUTE AddOrderRating
+                    END
+                ELSE
+                    IF @OldVersion = 3
+                        BEGIN
+                            EXECUTE AddDefaultFrequency
+                        END
+                    ELSE
+                        IF @OldVersion = 4
+                            BEGIN
+                                EXECUTE AddOrderDetailsPrimaryKeys
+                            END
+                        ELSE
+                            IF @OldVersion = 5
+                                BEGIN
+                                    EXECUTE UniqueEmail
+                                END
+                            ELSE
+                                IF @OldVersion = 6
+                                    BEGIN
+                                        EXECUTE CreateDescriptionTable
+                                    END
+                                ELSE
+                                    IF @OldVersion = 7
+                                        BEGIN
+                                            EXECUTE AddDescriptionForeignKey
+                                        END
+            SET @OldVersion = @OldVersion + 1
+        END
     WHILE @OldVersion > @Version
-    BEGIN
-        IF @OldVersion = 2
-            BEGIN
-                EXECUTE MigrateFrom2To1
-            END
-        SET @OldVersion = @OldVersion - 1
-    END
+        BEGIN
+            IF @OldVersion = 8
+                BEGIN
+                    EXECUTE DropDescriptionForeignKey
+                END
+            ELSE
+                IF @OldVersion = 7
+                    BEGIN
+                        EXECUTE DropDescriptionTable
+                    END
+                ELSE
+                    IF @OldVersion = 6
+                        BEGIN
+                            EXECUTE NormalEmail
+                        END
+                    ELSE
+                        IF @OldVersion = 5
+                            BEGIN
+                                EXECUTE DropOrderDetailsPrimaryKeys
+                            END
+                        ELSE
+                            IF @OldVersion = 4
+                                BEGIN
+                                    EXECUTE RemoveDefaultFrequency
+                                END
+                            ELSE
+                                IF @OldVersion = 3
+                                    BEGIN
+                                        EXECUTE RemoveOrderRating
+                                    END
+                                ELSE
+                                    IF @OldVersion = 2
+                                        BEGIN
+                                            EXECUTE IntFidelityPoints
+                                        END
+            SET @OldVersion = @OldVersion - 1
+        END
 
-    UPDATE DatabaseVersion SET version = @Version
+UPDATE DatabaseVersion
+SET version = @Version
 GO
