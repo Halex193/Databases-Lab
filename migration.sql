@@ -120,77 +120,51 @@ DECLARE @OldVersion INT
     WHILE @OldVersion < @Version
         BEGIN
             IF @OldVersion = 1
-                BEGIN
-                    EXECUTE FloatFidelityPoints
-                END
+                EXECUTE FloatFidelityPoints
             ELSE
                 IF @OldVersion = 2
-                    BEGIN
-                        EXECUTE AddOrderRating
-                    END
+                    EXECUTE AddOrderRating
                 ELSE
                     IF @OldVersion = 3
-                        BEGIN
-                            EXECUTE AddDefaultFrequency
-                        END
+                        EXECUTE AddDefaultFrequency
                     ELSE
                         IF @OldVersion = 4
-                            BEGIN
-                                EXECUTE AddOrderDetailsPrimaryKeys
-                            END
+                            EXECUTE AddOrderDetailsPrimaryKeys
                         ELSE
                             IF @OldVersion = 5
-                                BEGIN
-                                    EXECUTE UniqueEmail
-                                END
+                                EXECUTE UniqueEmail
                             ELSE
                                 IF @OldVersion = 6
-                                    BEGIN
-                                        EXECUTE CreateDescriptionTable
-                                    END
+                                    EXECUTE CreateDescriptionTable
                                 ELSE
                                     IF @OldVersion = 7
-                                        BEGIN
-                                            EXECUTE AddDescriptionForeignKey
-                                        END
+                                        EXECUTE AddDescriptionForeignKey
+
             SET @OldVersion = @OldVersion + 1
         END
     WHILE @OldVersion > @Version
         BEGIN
             IF @OldVersion = 8
-                BEGIN
-                    EXECUTE DropDescriptionForeignKey
-                END
+                EXECUTE DropDescriptionForeignKey
             ELSE
                 IF @OldVersion = 7
-                    BEGIN
-                        EXECUTE DropDescriptionTable
-                    END
+                    EXECUTE DropDescriptionTable
                 ELSE
                     IF @OldVersion = 6
-                        BEGIN
-                            EXECUTE NormalEmail
-                        END
+                        EXECUTE NormalEmail
                     ELSE
                         IF @OldVersion = 5
-                            BEGIN
-                                EXECUTE DropOrderDetailsPrimaryKeys
-                            END
+                            EXECUTE DropOrderDetailsPrimaryKeys
                         ELSE
                             IF @OldVersion = 4
-                                BEGIN
-                                    EXECUTE RemoveDefaultFrequency
-                                END
+                                EXECUTE RemoveDefaultFrequency
                             ELSE
                                 IF @OldVersion = 3
-                                    BEGIN
-                                        EXECUTE RemoveOrderRating
-                                    END
+                                    EXECUTE RemoveOrderRating
                                 ELSE
                                     IF @OldVersion = 2
-                                        BEGIN
-                                            EXECUTE IntFidelityPoints
-                                        END
+                                        EXECUTE IntFidelityPoints
+
             SET @OldVersion = @OldVersion - 1
         END
 

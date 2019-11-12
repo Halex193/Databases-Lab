@@ -1,28 +1,29 @@
-DROP TABLE PC_order_details
-DROP TABLE PCs
-DROP TABLE RAMs
-DROP TABLE Power_supplies
-DROP TABLE Motherboards
-DROP TABLE CPUs
-DROP TABLE HDDs
-DROP TABLE Peripheral_order_details
-DROP TABLE Peripherals
-DROP TABLE Orders
-DROP TABLE Employees
-DROP TABLE Customers
-DROP TABLE DatabaseVersion
-DROP TABLE PC_descriptions
+CREATE OR ALTER PROCEDURE RenewDatabase
+AS
+    DROP TABLE PC_order_details
+    DROP TABLE PCs
+    DROP TABLE RAMs
+    DROP TABLE Power_supplies
+    DROP TABLE Motherboards
+    DROP TABLE CPUs
+    DROP TABLE HDDs
+    DROP TABLE Peripheral_order_details
+    DROP TABLE Peripherals
+    DROP TABLE Orders
+    DROP TABLE Employees
+    DROP TABLE Customers
+    DROP TABLE DatabaseVersion
+    DROP TABLE PC_descriptions
+    CREATE TABLE CPUs
+    (
+        cpu_id    INT IDENTITY
+            CONSTRAINT PK_cpu PRIMARY KEY,
+        name      NVARCHAR(200) NOT NULL,
+        socket    NVARCHAR(200) NOT NULL,
+        price     INT,
+        frequency FLOAT
+    )
 
-CREATE TABLE CPUs
-(
-    cpu_id    INT IDENTITY
-        CONSTRAINT PK_cpu PRIMARY KEY,
-    name      NVARCHAR(200) NOT NULL,
-    socket    NVARCHAR(200) NOT NULL,
-    price     INT,
-    frequency FLOAT
-)
-GO
 
 CREATE TABLE Customers
 (
@@ -33,13 +34,13 @@ CREATE TABLE Customers
         CONSTRAINT DefaultFidelityPoints DEFAULT 0 NOT NULL,
     email           NVARCHAR(100)
 )
-GO
+
 
 CREATE TABLE DatabaseVersion
 (
     version INT NOT NULL
 )
-GO
+
 
 CREATE TABLE Employees
 (
@@ -50,7 +51,7 @@ CREATE TABLE Employees
     bonus_hours INT DEFAULT 0 NOT NULL,
     email       NVARCHAR(100)
 )
-GO
+
 
 CREATE TABLE HDDs
 (
@@ -62,7 +63,7 @@ CREATE TABLE HDDs
     capacity      INT,
     price         INT
 )
-GO
+
 
 CREATE TABLE Motherboards
 (
@@ -72,35 +73,41 @@ CREATE TABLE Motherboards
     cpu_socket     NVARCHAR(200) NOT NULL,
     price          INT
 )
-GO
+
 
 CREATE TABLE Orders
 (
-    order_id           INT IDENTITY CONSTRAINT PK_order PRIMARY KEY,
-    customer_id        INT                                   NOT NULL CONSTRAINT FK_customer REFERENCES Customers,
+    order_id           INT IDENTITY
+        CONSTRAINT PK_order PRIMARY KEY,
+    customer_id        INT                                   NOT NULL
+        CONSTRAINT FK_customer REFERENCES Customers,
     date               DATETIME                              NOT NULL,
-    employee_helper_id INT CONSTRAINT FK_employee_helper REFERENCES Employees,
+    employee_helper_id INT
+        CONSTRAINT FK_employee_helper REFERENCES Employees,
     progress           NVARCHAR(200) DEFAULT 'not delivered' NOT NULL
         CONSTRAINT CHECK_progress CHECK ([progress] = 'not delivered' OR [progress] = 'delivered' OR
                                          [progress] = 'in progress')
 )
-GO
+
 
 CREATE TABLE Peripherals
 (
-    peripheral_id INT IDENTITY CONSTRAINT PK_peripheral PRIMARY KEY,
+    peripheral_id INT IDENTITY
+        CONSTRAINT PK_peripheral PRIMARY KEY,
     name          NVARCHAR(500) NOT NULL,
     price         INT
 )
-GO
+
 
 CREATE TABLE Peripheral_order_details
 (
-    order_id      INT           NOT NULL CONSTRAINT FK_peripheral_order REFERENCES Orders ON DELETE CASCADE,
-    peripheral_id INT           NOT NULL CONSTRAINT FK_peripheral REFERENCES Peripherals,
+    order_id      INT           NOT NULL
+        CONSTRAINT FK_peripheral_order REFERENCES Orders ON DELETE CASCADE,
+    peripheral_id INT           NOT NULL
+        CONSTRAINT FK_peripheral REFERENCES Peripherals,
     amount        INT DEFAULT 1 NOT NULL
 )
-GO
+
 
 CREATE TABLE Power_supplies
 (
@@ -110,7 +117,7 @@ CREATE TABLE Power_supplies
     voltage         INT,
     price           INT
 )
-GO
+
 
 CREATE TABLE RAMs
 (
@@ -121,28 +128,35 @@ CREATE TABLE RAMs
     memory INT,
     price  INT
 )
-GO
+
 
 CREATE TABLE PCs
 (
     pc_id           INT IDENTITY
         CONSTRAINT PK_pc PRIMARY KEY,
     name            NVARCHAR(200),
-    cpu_id          INT CONSTRAINT FK_cpu REFERENCES CPUs ON DELETE SET NULL,
-    hdd_id          INT CONSTRAINT FK_hdd REFERENCES HDDs ON DELETE SET NULL,
-    motherboard_id  INT CONSTRAINT FK_motherboard REFERENCES Motherboards ON DELETE SET NULL,
-    ram_id          INT CONSTRAINT FK_ram REFERENCES RAMs ON DELETE SET NULL,
-    power_supply_id INT CONSTRAINT FK_power_supply REFERENCES Power_supplies ON DELETE SET NULL
+    cpu_id          INT
+        CONSTRAINT FK_cpu REFERENCES CPUs ON DELETE SET NULL,
+    hdd_id          INT
+        CONSTRAINT FK_hdd REFERENCES HDDs ON DELETE SET NULL,
+    motherboard_id  INT
+        CONSTRAINT FK_motherboard REFERENCES Motherboards ON DELETE SET NULL,
+    ram_id          INT
+        CONSTRAINT FK_ram REFERENCES RAMs ON DELETE SET NULL,
+    power_supply_id INT
+        CONSTRAINT FK_power_supply REFERENCES Power_supplies ON DELETE SET NULL
 )
-GO
+
 
 CREATE TABLE PC_order_details
 (
-    order_id INT           NOT NULL CONSTRAINT FK_pc_order REFERENCES Orders ON DELETE CASCADE,
-    pc_id    INT           NOT NULL CONSTRAINT FK_pc REFERENCES PCs,
+    order_id INT           NOT NULL
+        CONSTRAINT FK_pc_order REFERENCES Orders ON DELETE CASCADE,
+    pc_id    INT           NOT NULL
+        CONSTRAINT FK_pc REFERENCES PCs,
     amount   INT DEFAULT 1 NOT NULL
 )
-GO
+
 
 SET IDENTITY_INSERT Electronics_Shop.dbo.CPUs ON;
 INSERT INTO Electronics_Shop.dbo.CPUs (cpu_id, name, socket, price, frequency)
@@ -286,3 +300,4 @@ INSERT INTO Electronics_Shop.dbo.PC_order_details (order_id, pc_id, amount)
 VALUES (5, 2, 1);
 INSERT INTO Electronics_Shop.dbo.PC_order_details (order_id, pc_id, amount)
 VALUES (6, 3, 2);
+GO
