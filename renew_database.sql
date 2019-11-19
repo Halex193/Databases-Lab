@@ -1,20 +1,21 @@
 CREATE OR ALTER PROCEDURE RenewDatabase
 AS
-    DROP TABLE PC_order_details
-    DROP TABLE PCs
-    DROP TABLE RAMs
-    DROP TABLE Power_supplies
-    DROP TABLE Motherboards
-    DROP TABLE CPUs
-    DROP TABLE HDDs
-    DROP TABLE Peripheral_order_details
-    DROP TABLE Peripherals
-    DROP TABLE Orders
-    DROP TABLE Employees
-    DROP TABLE Customers
-    DROP TABLE DatabaseVersion
-    DROP TABLE PC_descriptions
-    DROP TABLE Versions
+    DROP TABLE IF EXISTS PC_order_details
+    DROP TABLE IF EXISTS PCs
+    DROP TABLE IF EXISTS RAMs
+    DROP TABLE IF EXISTS Power_supplies
+    DROP TABLE IF EXISTS Motherboards
+    DROP TABLE IF EXISTS CPUs
+    DROP TABLE IF EXISTS HDDs
+    DROP TABLE IF EXISTS Peripheral_order_details
+    DROP TABLE IF EXISTS Peripherals
+    DROP TABLE IF EXISTS Orders
+    DROP TABLE IF EXISTS Employees
+    DROP TABLE IF EXISTS Customers
+    DROP TABLE IF EXISTS DatabaseVersion
+    DROP TABLE IF EXISTS PC_descriptions
+    DROP TABLE IF EXISTS Versions
+    EXECUTE DropTestTables
 
     CREATE TABLE Versions
     (
@@ -286,4 +287,6 @@ INSERT INTO Electronics_Shop.dbo.PC_order_details (order_id, pc_id, amount)
 VALUES (5, 2, 1);
 INSERT INTO Electronics_Shop.dbo.PC_order_details (order_id, pc_id, amount)
 VALUES (6, 3, 2);
+
+    EXECUTE CreateVersions
 GO

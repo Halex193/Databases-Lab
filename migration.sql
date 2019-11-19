@@ -116,16 +116,20 @@ GO
 CREATE OR ALTER PROCEDURE NextVersion @Version INT
 AS
     SET @Version = @Version + 1
-    DECLARE @DoProcedure NVARCHAR(500)
-    SELECT @DoProcedure = doProcedure FROM Versions WHERE version = @Version
+DECLARE @DoProcedure NVARCHAR(500)
+SELECT @DoProcedure = doProcedure
+FROM Versions
+WHERE version = @Version
     SET @DoProcedure = N'EXECUTE ' + @DoProcedure
     EXECUTE sp_executesql @statement = @DoProcedure
 GO
 
 CREATE OR ALTER PROCEDURE PreviousVersion @Version INT
 AS
-    DECLARE @UndoProcedure NVARCHAR(500)
-    SELECT @UndoProcedure = undoProcedure FROM Versions WHERE version = @Version
+DECLARE @UndoProcedure NVARCHAR(500)
+SELECT @UndoProcedure = undoProcedure
+FROM Versions
+WHERE version = @Version
     SET @UndoProcedure = N'EXECUTE ' + @UndoProcedure
     EXECUTE sp_executesql @statement = @UndoProcedure
 GO
@@ -149,6 +153,8 @@ UPDATE DatabaseVersion
 SET version = @Version
 GO
 
+CREATE OR ALTER PROCEDURE CreateVersions
+AS
 DELETE
 FROM Versions
 INSERT INTO Versions (version, doProcedure, undoProcedure)
@@ -167,4 +173,30 @@ INSERT INTO Versions (version, doProcedure, undoProcedure)
 VALUES (7, 'CreateDescriptionTable', 'DropDescriptionTable')
 INSERT INTO Versions (version, doProcedure, undoProcedure)
 VALUES (8, 'AddDescriptionForeignKey', 'DropDescriptionForeignKey')
+INSERT INTO Versions (version, doProcedure, undoProcedure)
+VALUES (9, 'CreateTestTables', 'DropTestTables')
+INSERT INTO Versions (version, doProcedure, undoProcedure)
+VALUES (10, 'CreatePosterTables', 'DropPosterTables')
+GO
+
+-- Version 10
+CREATE OR ALTER PROCEDURE CreatePosterTables
+AS
+    CREATE TABLE Posters
+    (
+        poster_id INT IDENTITY CONSTRAINT PK_poster PRIMARY KEY ,
+        name NVARCHAR(200),
+        location NVARCHAR(200),
+        maker NVARCHAR(200)
+    )
+    CREATE TABLE Company
+    (
+        company_id INT IDENTITY CONSTRAINT PK_company PRIMARY KEY ,
+        poster_id INT CONSTRAINT FK_posterInclusion REFERENCES Posters(poster_id),
+    )
+    --TODO multi-valued PK table
+GO
+CREATE OR ALTER PROCEDURE DropPosterTables
+AS
+
 GO
