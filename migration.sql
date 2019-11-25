@@ -176,27 +176,54 @@ VALUES (8, 'AddDescriptionForeignKey', 'DropDescriptionForeignKey')
 INSERT INTO Versions (version, doProcedure, undoProcedure)
 VALUES (9, 'CreateTestTables', 'DropTestTables')
 INSERT INTO Versions (version, doProcedure, undoProcedure)
-VALUES (10, 'CreatePosterTables', 'DropPosterTables')
+VALUES (10, 'CreateVersion10Elements', 'DropVersion10Elements')
 GO
 
 -- Version 10
-CREATE OR ALTER PROCEDURE CreatePosterTables
+CREATE OR ALTER PROCEDURE CreateVersion10Elements
 AS
     CREATE TABLE Posters
     (
-        poster_id INT IDENTITY CONSTRAINT PK_poster PRIMARY KEY ,
-        name NVARCHAR(200),
-        location NVARCHAR(200),
-        maker NVARCHAR(200)
+        poster_id INT IDENTITY
+            CONSTRAINT PK_poster PRIMARY KEY,
+        name      NVARCHAR(200),
+        location  NVARCHAR(200),
+        maker     NVARCHAR(200)
     )
     CREATE TABLE Company
     (
-        company_id INT IDENTITY CONSTRAINT PK_company PRIMARY KEY ,
-        poster_id INT CONSTRAINT FK_posterInclusion REFERENCES Posters(poster_id),
+        company_id INT IDENTITY
+            CONSTRAINT PK_company PRIMARY KEY,
+        poster_id  INT
+            CONSTRAINT FK_posterInclusion REFERENCES Posters (poster_id),
     )
-    --TODO multi-valued PK table
-GO
-CREATE OR ALTER PROCEDURE DropPosterTables
-AS
+    CREATE TABLE Reservations
+    (
+        name NVARCHAR(200) NOT NULL,
+        date DATE          NOT NULL,
+        CONSTRAINT PK_reservations PRIMARY KEY (name, date)
+    )
+    CREATE VIEW PC_prices AS
+    SELECT PCs.pc_id,
+           PCs.name,
+           (SELECT C.price FROM CPUs C WHERE C.cpu_id = PCs.cpu_id) +
+           (SELECT H.price FROM HDDs H WHERE H.hdd_id = PCs.hdd_id) +
+           (SELECT M.price FROM Motherboards M WHERE M.motherboard_id = PCs.motherboard_id) +
+           (SELECT R.price FROM RAMs R WHERE R.ram_id = PCs.ram_id) +
+           (SELECT P.price FROM Power_supplies P WHERE P.power_supply_id = PCs.power_supply_id) AS price
+    FROM PCs
 
+--     CREATE VIEW ShowcasedCompanies AS
+--         SELECT *
+--         FROM Posters P JOIN Company C2 ON P.poster_id = C2.poster_id
+--         WHERE
+    -- TODO
+
+
+GO
+CREATE OR ALTER PROCEDURE DropVersion10Elements
+AS
+    DROP TABLE Reservations
+    DROP TABLE Company
+    DROP TABLE Posters
 GO
