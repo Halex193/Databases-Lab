@@ -190,12 +190,13 @@ AS
         location  NVARCHAR(200),
         maker     NVARCHAR(200)
     )
-    CREATE TABLE Company
+    CREATE TABLE Companies
     (
         company_id INT IDENTITY
             CONSTRAINT PK_company PRIMARY KEY,
         poster_id  INT
             CONSTRAINT FK_posterInclusion REFERENCES Posters (poster_id),
+        name       NVARCHAR(200)
     )
     CREATE TABLE Reservations
     (
@@ -203,7 +204,7 @@ AS
         date DATE          NOT NULL,
         CONSTRAINT PK_reservations PRIMARY KEY (name, date)
     )
-    CREATE VIEW PC_prices AS
+    EXECUTE sp_executesql N'CREATE VIEW PC_prices AS
     SELECT PCs.pc_id,
            PCs.name,
            (SELECT C.price FROM CPUs C WHERE C.cpu_id = PCs.cpu_id) +
@@ -211,19 +212,27 @@ AS
            (SELECT M.price FROM Motherboards M WHERE M.motherboard_id = PCs.motherboard_id) +
            (SELECT R.price FROM RAMs R WHERE R.ram_id = PCs.ram_id) +
            (SELECT P.price FROM Power_supplies P WHERE P.power_supply_id = PCs.power_supply_id) AS price
-    FROM PCs
-
---     CREATE VIEW ShowcasedCompanies AS
---         SELECT *
---         FROM Posters P JOIN Company C2 ON P.poster_id = C2.poster_id
---         WHERE
-    -- TODO
-
-
+    FROM PCs'
+    EXECUTE sp_executesql N'CREATE VIEW ShowcasedCompanies AS
+    SELECT C.name, T.Count
+    FROM (SELECT C2.company_id, COUNT(*) AS count
+          FROM Posters P
+                   JOIN Companies C2 ON P.poster_id = C2.poster_id
+          GROUP BY C2.company_id) AS T
+             JOIN Companies C ON C.company_id = T.company_id'
+    EXECUTE sp_executesql N'CREATE VIEW ReservationsPerDay
+AS
+    SELECT COUNT(*) AS count
+    FROM Reservations R
+    GROUP BY R.date'
 GO
+
 CREATE OR ALTER PROCEDURE DropVersion10Elements
 AS
     DROP TABLE Reservations
-    DROP TABLE Company
+    DROP TABLE Companies
     DROP TABLE Posters
+    DROP VIEW PC_prices
+    DROP VIEW ReservationsPerDay
+    DROP VIEW ShowcasedCompanies
 GO

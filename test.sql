@@ -1,13 +1,8 @@
-CREATE DATABASE Electronics_Shop ON(
-    NAME='Electronics_Shop',
-    FILENAME='D:\University\Databases\Electronics_Shop\Electronics_Shop.mdf')
-use Electronics_Shop
+CREATE OR ALTER PROCEDURE CreateTest(@Name NVARCHAR(200), @Tables NVARCHAR(1000), @Views NVARCHAR(1000))
+AS
+    INSERT INTO Tests (Name) VALUES (@Name)
+    DECLARE TestID INT = @@IDENTITY
 
-CREATE TABLE users(
-    id int
-)
-INSERT INTO users VALUES (1)
+    INSERT INTO Tables VALUES STRING_SPLIT(@Tables, ', ')
 
-SELECT * FROM users
-
-DROP TABLE users
+GO
