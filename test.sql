@@ -85,7 +85,6 @@ GO
 
 CREATE OR ALTER PROCEDURE PopulateTable (@TableName NVARCHAR(200), @NoOfRows INT)
 AS
-    PRINT 'Populate Table'
     DECLARE @Columns TABLE(name NVARCHAR(200), type NVARCHAR(200), is_identity BIT, foreign_table NVARCHAR(200), foreign_column NVARCHAR(200))
     INSERT INTO @Columns SELECT C.name, TP.name AS type, C.is_identity, T2.name AS foreign_table, C2.name AS foreign_column
     FROM sys.tables T
@@ -121,16 +120,33 @@ AS
         WHERE foreign_column IS NULL AND is_identity = 0 AND type = 'int'
         ORDER BY name
 
---         PRINT @IntValues
-
         DECLARE @StringValues VARCHAR(4000)
         SELECT @StringValues = COALESCE(@StringValues + ', ', '') + 'RANDOM_STRING'
         FROM @Columns
         WHERE foreign_column IS NULL AND is_identity = 0 AND type = 'nvarchar'
         ORDER BY name
 
-        DECLARE @Statement NVARCHAR(4000) = N'INSERT INTO '+@TableName+'('+ @NormalColumns +', '+ @ForeignColumns +') VALUES (`'+@IntValues+'`, `'+@StringValues+'`, `null`)'
+        DECLARE @Result NVARCHAR(4000) = ''
+        IF NOT @IntValues = ''
+            BEGIN
+                SET @Result = @Result + @IntValues
+            END
+
+        IF NOT @StringValues = ''
+            BEGIN
+                IF NOT @Result = ''
+                    BEGIN
+                        SET @Result = @Result + ',' + @StringValues
+                    END
+                 ELSE
+                    BEGIN
+                        SET @Result = @Result + @StringValues
+                    END
+            END
+
+        DECLARE @Statement NVARCHAR(4000) = N'INSERT INTO '+@TableName+'('+ @NormalColumns +') VALUES ('+@Result+')'
         EXECUTE sp_executesql @Statement
         SET @count = @count + 1
     END
+
 GO
