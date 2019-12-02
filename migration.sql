@@ -222,7 +222,7 @@ AS
              JOIN Companies C ON C.company_id = T.company_id'
     EXECUTE sp_executesql N'CREATE VIEW ReservationsPerDay
 AS
-    SELECT COUNT(*) AS count
+    SELECT R.date, COUNT(*) AS count
     FROM Reservations R
     GROUP BY R.date'
 GO

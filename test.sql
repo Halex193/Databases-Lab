@@ -47,9 +47,31 @@ AS
     @StartAt DATETIME,
     @EndAt DATETIME;
 
-    DECLARE TableCursor CURSOR FOR SELECT T2.TableID, T2.Name, TT.NoOfRows FROM Tests T JOIN TestTables TT ON T.TestID = TT.TestID JOIN Tables T2 ON TT.TableID = T2.TableID
+    DECLARE TableCursor2 CURSOR FOR SELECT T2.Name FROM Tests T JOIN TestTables TT ON T.TestID = TT.TestID JOIN Tables T2 ON TT.TableID = T2.TableID
         WHERE T.Name = @TestName
         ORDER BY Position
+
+    OPEN TableCursor2;
+
+    FETCH NEXT FROM TableCursor2 INTO
+        @Name;
+
+    WHILE @@FETCH_STATUS = 0
+        BEGIN
+            DECLARE @Statement NVARCHAR(4000)= N'DELETE FROM ' + @Name
+            EXECUTE sp_executesql @Statement
+
+            FETCH NEXT FROM TableCursor2 INTO
+                @Name;
+        END;
+
+    CLOSE TableCursor2;
+    DEALLOCATE TableCursor2;
+
+
+    DECLARE TableCursor CURSOR FOR SELECT T2.TableID, T2.Name, TT.NoOfRows FROM Tests T JOIN TestTables TT ON T.TestID = TT.TestID JOIN Tables T2 ON TT.TableID = T2.TableID
+        WHERE T.Name = @TestName
+        ORDER BY Position DESC
 
     OPEN TableCursor;
 
@@ -61,8 +83,6 @@ AS
     WHILE @@FETCH_STATUS = 0
         BEGIN
             SET @StartAt = current_timestamp
-            DECLARE @Statement NVARCHAR(4000)= N'DELETE FROM ' + @Name
-            EXECUTE sp_executesql @Statement
             EXECUTE PopulateTable @Name, @NoOfRows
             SET @EndAt = current_timestamp
 
@@ -77,12 +97,40 @@ AS
     CLOSE TableCursor;
     DEALLOCATE TableCursor;
 
-    DECLARE @Views TABLE(ViewId INT, Name NVARCHAR(200)) SELECT V.ViewID, V.Name FROM Tests T JOIN TestViews TV ON T.TestID = TV.TestID JOIN Views V ON TV.ViewID = V.ViewID
+    DECLARE
+    @ViewId INT,
+    @ViewName   NVARCHAR(200),
+    @ViewStartAt DATETIME,
+    @ViewEndAt DATETIME;
+
+    DECLARE ViewCursor CURSOR FOR SELECT V.ViewID, V.Name FROM Tests T JOIN TestViews TV ON T.TestID = TV.TestID JOIN Views V ON TV.ViewID = V.ViewID
     WHERE T.Name = @TestName
+
+    OPEN ViewCursor;
+
+    FETCH NEXT FROM ViewCursor INTO
+        @ViewId,
+        @ViewName;
+
+    WHILE @@FETCH_STATUS = 0
+        BEGIN
+            DECLARE @ViewStatement NVARCHAR(4000)= N'SELECT * FROM ' + @ViewName
+            SET @ViewStartAt = current_timestamp
+            EXECUTE sp_executesql @ViewStatement
+            SET @ViewEndAt = current_timestamp
+
+            INSERT INTO TestRunViews (TestRunID, ViewID, StartAt, EndAt) VALUES (@TestRunID, @ViewId, @ViewStartAt, @ViewEndAt)
+
+            FETCH NEXT FROM ViewCursor INTO
+                @ViewId,
+                @ViewName;
+        END;
+
+    CLOSE ViewCursor;
+    DEALLOCATE ViewCursor;
 
     UPDATE TestRuns SET EndAt = current_timestamp WHERE TestRunID = @TestRunID
 GO
-
 CREATE OR ALTER PROCEDURE PopulateTable (@TableName NVARCHAR(200), @NoOfRows INT)
 AS
     DECLARE @Columns TABLE(name NVARCHAR(200), type NVARCHAR(200), is_identity BIT, foreign_table NVARCHAR(200), foreign_column NVARCHAR(200))
@@ -103,50 +151,84 @@ AS
     WHERE foreign_column IS NULL AND is_identity = 0
     ORDER BY type, name
 
-    PRINT @NormalColumns
+    DECLARE @ForeignColumnName NVARCHAR(4000)
+    DECLARE @ForeignTable NVARCHAR(4000)
+    DECLARE @ForeignColumn NVARCHAR(4000)
+    DECLARE @ForeignMIN INT
+    DECLARE @ForeignMAX INT
 
-    DECLARE @ForeignColumns NVARCHAR(4000)
-    SELECT @ForeignColumns = COALESCE(@ForeignColumns + ', ', '') + name
+    SELECT TOP 1 @ForeignColumnName = name, @ForeignTable = foreign_table, @ForeignColumn = foreign_column
     FROM @Columns
-    WHERE foreign_column IS NOT NULL AND is_identity = 0
+    WHERE foreign_column IS NOT NULL AND is_identity = 0 AND type = 'int'
     ORDER BY type, name
 
+    DECLARE @ColumnNames NVARCHAR(4000) = @NormalColumns
+
+    IF NOT @ForeignColumnName = ''
+        BEGIN
+            SET @ColumnNames = @ColumnNames + ',' + @ForeignColumnName
+            DECLARE @queryMIN NVARCHAR(4000) = 'SELECT @min = MIN('+@ForeignColumn+') FROM '+@ForeignTable
+            EXECUTE sp_executesql @queryMIN, N'@min INT OUTPUT', @min = @ForeignMIN OUTPUT
+
+            DECLARE @queryMAX NVARCHAR(4000) = 'SELECT @max = MAX('+@ForeignColumn+') FROM '+@ForeignTable
+            EXECUTE sp_executesql @queryMAX, N'@max INT OUTPUT', @max = @ForeignMAX OUTPUT
+
+        END
+
     DECLARE @count INT = 0
+    DECLARE @IntValues NVARCHAR(4000)
+    DECLARE @DateValues NVARCHAR(4000)
+    DECLARE @StringValues NVARCHAR(4000)
+    DECLARE @ForeignValue NVARCHAR(4000)
+    DECLARE @Values NVARCHAR(4000)
+    DECLARE @Statement NVARCHAR(4000)
+
     WHILE @count < @NoOfRows
     BEGIN
-        DECLARE @IntValues NVARCHAR(4000) = N''
+        SET @IntValues = NULL
         SELECT @IntValues = COALESCE(@IntValues + ', ', '') + ROUND(400*RAND(), 0)
         FROM @Columns
         WHERE foreign_column IS NULL AND is_identity = 0 AND type = 'int'
         ORDER BY name
 
-        DECLARE @StringValues VARCHAR(4000)
-        SELECT @StringValues = COALESCE(@StringValues + ', ', '') + 'RANDOM_STRING'
+        SET @DateValues = NULL
+        SELECT @DateValues = COALESCE(@DateValues + ', ', '') + N''+char(39)+CONVERT(nvarchar,ROUND(200*RAND()+1805, 0))+'-12-'+CONVERT(nvarchar,ROUND(11*RAND()+1, 0))+char(39)
+        FROM @Columns
+        WHERE foreign_column IS NULL AND is_identity = 0 AND type = 'date'
+        ORDER BY name
+
+        SET @StringValues = NULL
+        SELECT @StringValues = COALESCE(@StringValues + ', ', '') + N''+char(39)+'RANDOM_STRING'+CONVERT(nvarchar,ROUND(400*RAND(), 0)) +char(39)
         FROM @Columns
         WHERE foreign_column IS NULL AND is_identity = 0 AND type = 'nvarchar'
         ORDER BY name
 
-        DECLARE @Result NVARCHAR(4000) = ''
+        SET @ForeignValue = CONVERT(nvarchar,ROUND((@ForeignMAX - @ForeignMIN)*RAND() + @ForeignMIN, 0))
+
+        SET @Values = N''
         IF NOT @IntValues = ''
             BEGIN
-                SET @Result = @Result + @IntValues
+                SET @Values = @Values + ',' + @IntValues
             END
-
-        IF NOT @StringValues = ''
+        IF NOT @DateValues = N''
             BEGIN
-                IF NOT @Result = ''
-                    BEGIN
-                        SET @Result = @Result + ',' + @StringValues
-                    END
-                 ELSE
-                    BEGIN
-                        SET @Result = @Result + @StringValues
-                    END
+             SET @Values = @Values + ',' + @DateValues
+            END
+        IF NOT @StringValues = N''
+            BEGIN
+             SET @Values = @Values + ',' + @StringValues
             END
 
-        DECLARE @Statement NVARCHAR(4000) = N'INSERT INTO '+@TableName+'('+ @NormalColumns +') VALUES ('+@Result+')'
+        IF NOT @ForeignColumnName = ''
+        BEGIN
+            SET @Values = @Values + ',' + @ForeignValue
+        END
+
+        SET @Values = STUFF(@Values, 1, 1, '')
+        SET @Statement = N'INSERT INTO '+@TableName+' ('+ @ColumnNames +') VALUES ('+@Values+')'
         EXECUTE sp_executesql @Statement
         SET @count = @count + 1
     END
+    PRINT 'Sample: ' + @Statement
 
 GO
