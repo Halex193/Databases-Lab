@@ -1,51 +1,3 @@
-CREATE OR ALTER PROCEDURE CreateTest(@Name NVARCHAR(200), @Tables NVARCHAR(1000), @Views NVARCHAR(1000))
-AS
-    IF @Tables = '' AND @Views = ''
-        PRINT 'Nothing to test on, creation of the test is halted'
-    ELSE
-        BEGIN
-            INSERT INTO Tests (Name) VALUES (@Name)
-            DECLARE @TestID INT = @@IDENTITY
-
-            DECLARE @TableName INT, @Position INT
-            DECLARE TableCursor CURSOR FOR SELECT S.value AS name,
-            row_number() OVER (ORDER BY current_timestamp) AS position
-            FROM String_Split(@Tables, N';') S
-
-            OPEN TableCursor;
-
-            FETCH NEXT FROM TableCursor INTO
-                @TableName,
-                @Position;
-
-            WHILE @@FETCH_STATUS = 0
-            BEGIN
-                DECLARE @ObjectId INT = NULL
-                SELECT @ObjectId = object_id FROM sys.objects WHERE name = @TableName AND type = 'U'
-                IF @ObjectId IS NULL
-                    PRINT 'Table ' + @TableName + ' does not exist'
-                ELSE
-                    BEGIN
-                        DECLARE @TableId INT;
-                        SELECT @TableId = TableID FROM Tables WHERE Name = @TableName
-                        IF @TableId IS NULL
-                            INSERT INTO Tables (Name) VALUES (@TableName)
-
-                        INSERT INTO TestTables (TestID, TableID, NoOfRows, Position) VALUES (@TestID, @TableId, 200, Position)
-                    END
-
-
-                FETCH NEXT FROM TableCursor INTO
-                    @TableName,
-                    @Position;
-            END;
-
-            INSERT INTO TestViews (TestID, ViewID)
-                    SELECT @TestID, V2.ViewID FROM String_Split(@Views, N';') S
-                    JOIN Views V2 ON V2.Name = S.value
-        END
-GO
-
 CREATE OR ALTER PROCEDURE InitTests
 AS
     DELETE FROM TestTables
@@ -57,13 +9,111 @@ AS
     DELETE FROM TestRunTables
     DELETE FROM TestRunViews
 
-    INSERT INTO Tables (Name) VALUES ('Posters'), ('Reservations'), ('Companies')
-    INSERT INTO Views (Name) VALUES ('PC_prices'), ('ReservationsPerDay'), ('ShowcasedCompanies')
-
     EXECUTE CreateTest 'Test1',
-                        'Reservations;Companies;Posters;Orders',
+                        'Reservations;Companies;Posters',
                         'PC_prices;ReservationsPerDay;ShowcasedCompanies'
+--     EXECUTE CreateTest 'Test2',
+--                             'Reservations;Companies;Posters;Orders;NO_TABLE',
+--                             'PC_prices;ReservationsPerDay;SOMETHING_ELSE'
+--     EXECUTE CreateTest 'Test3', '', ''
 
+GO
+
+CREATE OR ALTER PROCEDURE CreateTest(@Name NVARCHAR(200), @Tables NVARCHAR(1000), @Views NVARCHAR(1000))
+AS
+    DECLARE @Test NVARCHAR(4000) = NULL
+    SELECT @Test = TestID FROM Tests WHERE Name = @Name
+    IF @Test IS NOT NULL
+        PRINT 'Test "' + @Name + '" already exists and therefore it will not be created'
+    ELSE
+        BEGIN
+    DECLARE @ObjectId INT = NULL
+    IF @Tables = '' AND @Views = ''
+        PRINT 'No tables or views, test will not be created'
+    ELSE
+        BEGIN
+            INSERT INTO Tests (Name) VALUES (@Name)
+            DECLARE @TestID INT = @@IDENTITY
+
+            --Tables
+            DECLARE @TableName NVARCHAR(4000), @Position INT
+            DECLARE TableCursor CURSOR FOR SELECT S.value AS name,
+            row_number() OVER (ORDER BY current_timestamp) AS position
+            FROM String_Split(@Tables, N';') S
+
+            OPEN TableCursor;
+
+            FETCH NEXT FROM TableCursor INTO
+                @TableName,
+                @Position;
+            DECLARE @TableId INT;
+
+            WHILE @@FETCH_STATUS = 0
+            BEGIN
+                SET @ObjectId = NULL
+                SELECT @ObjectId = object_id FROM sys.objects WHERE name = @TableName AND type = 'U'
+                IF @ObjectId IS NULL
+                    PRINT 'Table "' + @TableName + '" does not exist and will be ignored'
+                ELSE
+                    BEGIN
+                        SET @TableId = NULL
+                        SELECT @TableId = TableID FROM Tables WHERE Name = @TableName
+                        IF @TableId IS NULL
+                            BEGIN
+                                INSERT INTO Tables (Name) VALUES (@TableName)
+                                SET @TableId = @@IDENTITY
+                            END
+
+                        INSERT INTO TestTables (TestID, TableID, NoOfRows, Position) VALUES (@TestID, @TableId, 200, @Position)
+                    END
+
+
+                FETCH NEXT FROM TableCursor INTO
+                    @TableName,
+                    @Position;
+            END;
+
+            CLOSE TableCursor
+            DEALLOCATE TableCursor
+
+            --Views
+            DECLARE @ViewName NVARCHAR(4000)
+            DECLARE ViewCursor CURSOR FOR SELECT S.value AS name FROM String_Split(@Views, N';') S
+
+            OPEN ViewCursor;
+
+            FETCH NEXT FROM ViewCursor INTO
+                @ViewName;
+
+            DECLARE @ViewId INT;
+            WHILE @@FETCH_STATUS = 0
+            BEGIN
+                SET @ObjectId = NULL
+                SELECT @ObjectId = object_id FROM sys.objects WHERE name = @ViewName AND type = 'V'
+                IF @ObjectId IS NULL
+                    PRINT 'View "' + @ViewName + '" does not exist and will be ignored'
+                ELSE
+                    BEGIN
+                        SET @ViewId = NULL
+                        SELECT @ViewId = ViewID FROM Views WHERE Name = @ViewName
+                        IF @ViewId IS NULL
+                            BEGIN
+                                INSERT INTO Views (Name) VALUES (@ViewName)
+                                SET @ViewId = @@IDENTITY
+                            END
+
+                        INSERT INTO TestViews (TestID, ViewID) VALUES (@TestID, @ViewId)
+                    END
+
+
+                FETCH NEXT FROM ViewCursor INTO
+                    @ViewName;
+            END;
+
+            CLOSE ViewCursor
+            DEALLOCATE ViewCursor
+        END
+    END
 GO
 
 CREATE OR ALTER PROCEDURE Test (@TestName NVARCHAR(200))
