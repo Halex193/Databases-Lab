@@ -1,18 +1,49 @@
 CREATE OR ALTER PROCEDURE CreateTest(@Name NVARCHAR(200), @Tables NVARCHAR(1000), @Views NVARCHAR(1000))
 AS
-    INSERT INTO Tests (Name) VALUES (@Name)
-    DECLARE @TestID INT = @@IDENTITY
+    IF @Tables = '' AND @Views = ''
+        PRINT 'Nothing to test on, creation of the test is halted'
+    ELSE
+        BEGIN
+            INSERT INTO Tests (Name) VALUES (@Name)
+            DECLARE @TestID INT = @@IDENTITY
 
-    INSERT INTO TestTables (TestID, TableID, NoOfRows, Position)
-            SELECT @TestID, T2.TableID, 200, T.position FROM (SELECT S.value AS name,
+            DECLARE @TableName INT, @Position INT
+            DECLARE TableCursor CURSOR FOR SELECT S.value AS name,
             row_number() OVER (ORDER BY current_timestamp) AS position
-            FROM String_Split(@Tables, N';') S) T
-            JOIN Tables T2 ON T2.Name = T.name
+            FROM String_Split(@Tables, N';') S
 
-    INSERT INTO TestViews (TestID, ViewID)
-            SELECT @TestID, V2.ViewID FROM String_Split(@Views, N';') S
-            JOIN Views V2 ON V2.Name = S.value
+            OPEN TableCursor;
 
+            FETCH NEXT FROM TableCursor INTO
+                @TableName,
+                @Position;
+
+            WHILE @@FETCH_STATUS = 0
+            BEGIN
+                DECLARE @ObjectId INT = NULL
+                SELECT @ObjectId = object_id FROM sys.objects WHERE name = @TableName AND type = 'U'
+                IF @ObjectId IS NULL
+                    PRINT 'Table ' + @TableName + ' does not exist'
+                ELSE
+                    BEGIN
+                        DECLARE @TableId INT;
+                        SELECT @TableId = TableID FROM Tables WHERE Name = @TableName
+                        IF @TableId IS NULL
+                            INSERT INTO Tables (Name) VALUES (@TableName)
+
+                        INSERT INTO TestTables (TestID, TableID, NoOfRows, Position) VALUES (@TestID, @TableId, 200, Position)
+                    END
+
+
+                FETCH NEXT FROM TableCursor INTO
+                    @TableName,
+                    @Position;
+            END;
+
+            INSERT INTO TestViews (TestID, ViewID)
+                    SELECT @TestID, V2.ViewID FROM String_Split(@Views, N';') S
+                    JOIN Views V2 ON V2.Name = S.value
+        END
 GO
 
 CREATE OR ALTER PROCEDURE InitTests
@@ -30,7 +61,7 @@ AS
     INSERT INTO Views (Name) VALUES ('PC_prices'), ('ReservationsPerDay'), ('ShowcasedCompanies')
 
     EXECUTE CreateTest 'Test1',
-                        'Reservations;Companies;Posters',
+                        'Reservations;Companies;Posters;Orders',
                         'PC_prices;ReservationsPerDay;ShowcasedCompanies'
 
 GO
