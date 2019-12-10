@@ -15,6 +15,7 @@ AS
     DROP TABLE IF EXISTS DatabaseVersion
     DROP TABLE IF EXISTS PC_descriptions
     DROP TABLE IF EXISTS Versions
+    EXECUTE DropVersion10Elements
     EXECUTE DropTestTables
 
     CREATE TABLE Versions
