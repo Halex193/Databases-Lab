@@ -158,25 +158,18 @@ AS
 DELETE
 FROM Versions
 INSERT INTO Versions (version, doProcedure, undoProcedure)
-VALUES (1, NULL, NULL)
-INSERT INTO Versions (version, doProcedure, undoProcedure)
-VALUES (2, 'FloatFidelityPoints', 'IntFidelityPoints')
-INSERT INTO Versions (version, doProcedure, undoProcedure)
-VALUES (3, 'AddOrderRating', 'RemoveOrderRating')
-INSERT INTO Versions (version, doProcedure, undoProcedure)
-VALUES (4, 'AddDefaultFrequency', 'RemoveDefaultFrequency')
-INSERT INTO Versions (version, doProcedure, undoProcedure)
-VALUES (5, 'AddOrderDetailsPrimaryKeys', 'DropOrderDetailsPrimaryKeys')
-INSERT INTO Versions (version, doProcedure, undoProcedure)
-VALUES (6, 'UniqueEmail', 'NormalEmail')
-INSERT INTO Versions (version, doProcedure, undoProcedure)
-VALUES (7, 'CreateDescriptionTable', 'DropDescriptionTable')
-INSERT INTO Versions (version, doProcedure, undoProcedure)
-VALUES (8, 'AddDescriptionForeignKey', 'DropDescriptionForeignKey')
-INSERT INTO Versions (version, doProcedure, undoProcedure)
-VALUES (9, 'CreateTestTables', 'DropTestTables')
-INSERT INTO Versions (version, doProcedure, undoProcedure)
-VALUES (10, 'CreateVersion10Elements', 'DropVersion10Elements')
+VALUES
+    (1, NULL, NULL),
+    (2, 'FloatFidelityPoints', 'IntFidelityPoints'),
+    (3, 'AddOrderRating', 'RemoveOrderRating'),
+    (4, 'AddDefaultFrequency', 'RemoveDefaultFrequency'),
+    (5, 'AddOrderDetailsPrimaryKeys', 'DropOrderDetailsPrimaryKeys'),
+    (6, 'UniqueEmail', 'NormalEmail'),
+    (7, 'CreateDescriptionTable', 'DropDescriptionTable'),
+    (8, 'AddDescriptionForeignKey', 'DropDescriptionForeignKey'),
+    (9, 'CreateTestTables', 'DropTestTables'),
+    (10, 'CreateVersion10Elements', 'DropVersion10Elements'),
+    (11, 'CreateVersion11Elements', 'DropVersion11Elements')
 GO
 
 -- Version 10
@@ -235,4 +228,61 @@ AS
     DROP VIEW PC_prices
     DROP VIEW ReservationsPerDay
     DROP VIEW ShowcasedCompanies
+GO
+
+CREATE OR ALTER PROCEDURE CreateVersion11Elements
+AS
+    DROP TABLE Reservations
+    DROP TABLE Companies
+    DROP TABLE Posters
+
+    CREATE TABLE Posters
+    (
+        poster_id INT IDENTITY
+            CONSTRAINT PK_poster PRIMARY KEY,
+        slot INT NOT NULL CONSTRAINT UQ_number UNIQUE,
+        name NVARCHAR(500)
+    )
+    CREATE TABLE Companies
+    (
+        company_id INT IDENTITY
+            CONSTRAINT PK_company PRIMARY KEY,
+        bank_account INT
+    )
+    CREATE TABLE Reservations
+    (
+        number INT NOT NULL CONSTRAINT PK_Reservations PRIMARY KEY,
+        company_id INT NOT NULL CONSTRAINT FK_reservation_company REFERENCES Companies(company_id),
+        poster_id INT NOT NULL CONSTRAINT FK_reservation_poster REFERENCES Posters(poster_id)
+    )
+GO
+
+CREATE OR ALTER PROCEDURE DropVersion11Elements
+AS
+    DROP TABLE Reservations
+    DROP TABLE Companies
+    DROP TABLE Posters
+
+    CREATE TABLE Posters
+    (
+        poster_id INT IDENTITY
+            CONSTRAINT PK_poster PRIMARY KEY,
+        name      NVARCHAR(200),
+        location  NVARCHAR(200),
+        maker     NVARCHAR(200)
+    )
+    CREATE TABLE Companies
+    (
+        company_id INT IDENTITY
+            CONSTRAINT PK_company PRIMARY KEY,
+        poster_id  INT
+            CONSTRAINT FK_posterInclusion REFERENCES Posters (poster_id),
+        name       NVARCHAR(200)
+    )
+    CREATE TABLE Reservations
+    (
+        name NVARCHAR(200) NOT NULL,
+        date DATE          NOT NULL,
+        CONSTRAINT PK_reservations PRIMARY KEY (name, date)
+    )
 GO

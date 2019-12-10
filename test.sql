@@ -12,8 +12,8 @@ AS
     EXECUTE CreateTest 'Test1',
                         'Reservations;Companies;Posters',
                         'PC_prices;ReservationsPerDay;ShowcasedCompanies'
---     EXECUTE CreateTest 'Test2',
---                             'Reservations;Companies;Posters;Orders;NO_TABLE',
+--     EXECUTE CreateTest 'Test4',
+--                             'Reservations;Companies;Posters;NO_TABLE',
 --                             'PC_prices;ReservationsPerDay;SOMETHING_ELSE'
 --     EXECUTE CreateTest 'Test3', '', ''
 
